@@ -25,7 +25,12 @@ public class UserRegisterController {
     private final ShortMessageService shortMessageService;
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String,String> redisTemplate;
-    private final EntityManager entityManager;
+
+
+    @GetMapping("/check")
+    public ResultInfo<String> checkPhone(String phone){
+        return userRepo.existsUserByPhone(phone) ? new ResultInfo<>(1,"existing phone") : new ResultInfo<>(0,"usable phone");
+    }
 
     @GetMapping("/code")
     public ResultInfo<String> getVerificationCode(String phone){
@@ -44,7 +49,7 @@ public class UserRegisterController {
         if(form.code.equals(correct)){
             redisTemplate.delete(k);
             User user = new User(form.phone, passwordEncoder.encode(form.password),null);
-            user.addAuthority(entityManager.find(Authority.class,1));
+            user.addAuthority(new Authority(1));
             userRepo.save(user);
             log.info("user: " + form.phone + " register successfully");
             return new ResultInfo<>(0,"success");
