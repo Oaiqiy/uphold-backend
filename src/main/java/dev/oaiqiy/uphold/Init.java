@@ -1,9 +1,7 @@
 package dev.oaiqiy.uphold;
 
-import dev.oaiqiy.uphold.data.AuthorityRepo;
-import dev.oaiqiy.uphold.data.UserRepo;
-import dev.oaiqiy.uphold.domain.Authority;
-import dev.oaiqiy.uphold.domain.User;
+import dev.oaiqiy.uphold.data.*;
+import dev.oaiqiy.uphold.domain.*;
 import dev.oaiqiy.uphold.security.TokenCreator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +21,12 @@ import java.util.List;
 public class Init {
     private final UserRepo userRepo;
     private final AuthorityRepo authorityRepo;
+    private final GymAreaRepo gymAreaRepo;
     private final PasswordEncoder passwordEncoder;
-    private final EntityManager entityManager;
+    private final GymRepo gymRepo;
+    private final MembershipCardRepo membershipCardRepo;
+    private final MembershipRegisterRepo membershipRegisterRepo;
+
     private final TokenCreator tokenCreator;
 
 
@@ -41,10 +43,41 @@ public class Init {
                 User mhl = new User("123",passwordEncoder.encode("123"),"mhl");
                 User mzy = new User("1235",passwordEncoder.encode("123"),"mzy");
 
-                mhl.addAuthority(entityManager.find(Authority.class,1));
+                mhl.addAuthority(role_user);
                 userRepo.save(mhl);
-                mzy.addAuthority(entityManager.find(Authority.class,1));
+                mzy.addAuthority(role_user);
                 userRepo.save(mzy);
+
+                Gym gym = new Gym();
+                gym.setName("北邮健身房");
+                gym.setIntroduction("不来白不来");
+                gym.setUser(mzy);
+                gymRepo.save(gym);
+
+                mhl.getCollection().add(gym);
+                userRepo.save(mhl);
+
+
+                GymArea gymArea = new GymArea();
+                gymArea.setGym(gym);
+                gymArea.setName("健身区");
+                gymArea.setIntroduction("好地方");
+
+                gymAreaRepo.save(gymArea);
+
+                MembershipCard membershipCard = new MembershipCard();
+                membershipCard.setGym(gym);
+                membershipCard.setName("一年会员");
+                membershipCard.setPrice(998);
+                membershipCard.setDuration(365);
+
+                membershipCardRepo.save(membershipCard);
+
+                MembershipRegister membershipRegister = new MembershipRegister();
+                membershipRegister.setUser(mhl);
+                membershipRegister.setMembershipCard(membershipCard);
+
+                membershipRegisterRepo.save(membershipRegister);
 
             }
         };

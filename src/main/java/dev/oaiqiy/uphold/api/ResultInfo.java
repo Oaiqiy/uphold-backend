@@ -15,4 +15,12 @@ public class ResultInfo<T> {
     private final Integer code;
     private final String msg;
     private T data;
+
+    public static ResultInfo<?> failure(){
+        return new ResultInfo<>(1,"failure");
+    }
+    public static ResultInfo<?> success(){
+        return new ResultInfo<>(0,"success");
+    }
+
 }
