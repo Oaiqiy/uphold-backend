@@ -27,7 +27,13 @@ public class GymInfoController {
             return new ResultInfo<>(0,"Success",gyms.getContent());
     }
 
-
-
+    @GetMapping("/info")
+    public ResultInfo<?> getGymInfo(Long id){
+        Gym gym = gymRepo.findGymById(id);
+        if(id == null)
+            return ResultInfo.failure();
+        else
+            return new ResultInfo<>(0,"success",gym);
+    }
 
 }
