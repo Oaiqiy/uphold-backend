@@ -1,5 +1,6 @@
 package dev.oaiqiy.uphold.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -15,5 +16,6 @@ public class MembershipCard {
     private Integer price;
 
     @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
     private Gym gym;
 }

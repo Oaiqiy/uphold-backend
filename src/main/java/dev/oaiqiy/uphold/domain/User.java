@@ -1,7 +1,13 @@
 package dev.oaiqiy.uphold.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerator;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -13,12 +19,14 @@ import java.util.List;
 @Data
 @Entity
 @NoArgsConstructor
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,property = "id")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String phone;
+    @JsonIgnore
     private String password;
 
     private String nickname;
@@ -31,7 +39,12 @@ public class User implements UserDetails {
     private List<Authority> authorities = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.MERGE,targetEntity = Gym.class)
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Gym> collection =new ArrayList<>(10);
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.MERGE)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<MembershipRegister> membershipRegisters;
 
     public void addAuthority(Authority authority){
         authorities.add(authority);

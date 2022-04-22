@@ -12,6 +12,7 @@ public class GymAppointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
     private GymArea gymArea;
 
@@ -19,5 +20,7 @@ public class GymAppointment {
     private Date startTime;
     private Date endTime;
 
+
     private Integer count;
+    private Integer appointed;
 }

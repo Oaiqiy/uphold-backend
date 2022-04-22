@@ -1,5 +1,6 @@
 package dev.oaiqiy.uphold.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -13,7 +14,9 @@ public class GymAppointmentRecord {
     private Long id;
 
     @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
     private User user;
+
     @ManyToOne
     private GymAppointment gymAppointment;
 
