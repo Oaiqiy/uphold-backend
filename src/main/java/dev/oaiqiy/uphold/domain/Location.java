@@ -12,10 +12,8 @@ import javax.persistence.Id;
 public class Location {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer adcode;
 
-    private String province;
-    private String City;
-    private String area;
+    private String name;
+
 }
