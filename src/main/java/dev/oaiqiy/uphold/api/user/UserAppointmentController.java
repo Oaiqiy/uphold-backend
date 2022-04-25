@@ -127,8 +127,6 @@ public class UserAppointmentController {
     }
 
 
-
-
     @GetMapping("/info")
     public ResultInfo<List<GymAppointment>> getAppointmentInfo(Long id, Long appointment){
         List<GymAppointment> result = new ArrayList<>();
