@@ -33,6 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                .antMatchers("/user/code","/user/register").access("permitAll()")
                 .antMatchers("/**","/").access("hasRole('ROLE_USER')")
                 .and().addFilterAt(createLoginAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(createCommonAuthFilter())

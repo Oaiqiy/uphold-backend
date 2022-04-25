@@ -51,7 +51,7 @@ public class CommonAuthFilter extends BasicAuthenticationFilter {
             auth.setDetails(user);
 
         }catch (Exception e){
-            log.warn(request.getRemoteHost() + " request " + request.getRequestURI() + e.getMessage());
+            log.warn(request.getRemoteAddr() + " request " + request.getRequestURI() + e.getMessage());
             auth = new UsernamePasswordAuthenticationToken(null,null,null);
         }
 
