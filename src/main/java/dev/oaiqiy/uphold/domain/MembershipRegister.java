@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedBy;
 
 import javax.persistence.*;
+import java.util.Calendar;
 import java.util.Date;
 
 @Entity
@@ -22,8 +23,21 @@ public class MembershipRegister {
 
     private Date registerAt;
 
-    @CreatedBy
+    @PrePersist
     public void createAt(){
         registerAt = new Date();
+    }
+
+    public boolean check(Long id){
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(registerAt);
+        calendar.add(Calendar.DATE,membershipCard.getDuration());
+
+        if(calendar.before(new Date()))
+            return false;
+
+        return membershipCard.getGym().getId().equals(id);
+
     }
 }

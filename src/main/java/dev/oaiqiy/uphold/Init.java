@@ -15,6 +15,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.swing.text.html.parser.Entity;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -29,6 +30,7 @@ public class Init {
     private final MembershipCardRepo membershipCardRepo;
     private final MembershipRegisterRepo membershipRegisterRepo;
     private final EntityManagerFactory entityManagerFactory;
+    private final GymAppointmentRepo gymAppointmentRepo;
 
     private final TokenCreator tokenCreator;
 
@@ -89,6 +91,15 @@ public class Init {
                 membershipRegister.setMembershipCard(membershipCard);
 
                 membershipRegisterRepo.save(membershipRegister);
+
+                GymAppointment gymAppointment = new GymAppointment();
+                gymAppointment.setAppointed(0);
+                gymAppointment.setGymArea(gymArea);
+                gymAppointment.setCount(100);
+                gymAppointment.setStartTime(new Date());
+                gymAppointment.setEndTime(new Date());
+
+                gymAppointmentRepo.save(gymAppointment);
 
             }
         };

@@ -9,5 +9,6 @@ import java.util.List;
 
 public interface GymRepo extends CrudRepository<Gym,Long> {
     Page<Gym> findAll(Pageable pageable);
+    Page<Gym> findGymsByLocation_Adcode(Integer adcode,Pageable pageable);
     Gym findGymById(Long id);
 }
