@@ -42,6 +42,9 @@ public class Gym {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<GymArea> gymAreas;
 
+    @OneToMany(mappedBy = "gym")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<MembershipCard> membershipCards;
 
 
 }

@@ -40,4 +40,12 @@ public class MembershipRegister {
         return membershipCard.getGym().getId().equals(id);
 
     }
+
+    public boolean check(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(registerAt);
+        calendar.add(Calendar.DATE,membershipCard.getDuration());
+
+        return !calendar.before(new Date());
+    }
 }

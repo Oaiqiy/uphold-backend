@@ -3,9 +3,9 @@ package dev.oaiqiy.uphold.api.user;
 import dev.oaiqiy.uphold.api.ResultInfo;
 import dev.oaiqiy.uphold.data.GymAppointmentRecordRepo;
 import dev.oaiqiy.uphold.data.GymAppointmentRepo;
-import dev.oaiqiy.uphold.domain.GymAppointment;
-import dev.oaiqiy.uphold.domain.GymAppointmentRecord;
-import dev.oaiqiy.uphold.domain.User;
+import dev.oaiqiy.uphold.data.MembershipRegisterRepo;
+import dev.oaiqiy.uphold.domain.*;
+import dev.oaiqiy.uphold.security.TokenCreator;
 import dev.oaiqiy.uphold.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +15,8 @@ import org.springframework.data.relational.core.sql.In;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user/appointment")
@@ -26,6 +25,8 @@ import java.util.Optional;
 public class UserAppointmentController {
     private final GymAppointmentRepo gymAppointmentRepo;
     private final GymAppointmentRecordRepo gymAppointmentRecordRepo;
+    private final MembershipRegisterRepo membershipRegisterRepo;
+    private final TokenCreator tokenCreator;
 
 
     @PostMapping
@@ -85,8 +86,18 @@ public class UserAppointmentController {
     }
 
     @GetMapping
-    private ResultInfo<List<GymAppointmentRecord>> getRecordList(Integer page,Integer size){
+    private ResultInfo<List<GymAppointmentRecord>> getRecordList(Integer page,Integer size, Long id){
         User user = SecurityUtil.user();
+
+        if(id != null){
+            Optional<GymAppointmentRecord> record = gymAppointmentRecordRepo.findById(id);
+            if(record.isEmpty())
+                return new ResultInfo<>(2,"no such record");
+            List<GymAppointmentRecord> result = new ArrayList<>(1);
+            result.add(record.get());
+            return new ResultInfo<>(0,"success",result);
+
+        }
 
         Page<GymAppointmentRecord> records = gymAppointmentRecordRepo.findAllByUser(user, PageRequest.of(page,size));
 
@@ -94,6 +105,54 @@ public class UserAppointmentController {
             return new ResultInfo<>(1,"out of range");
         else
             return new ResultInfo<>(0,"success",records.getContent());
+
+    }
+
+    @GetMapping("/check")
+    public ResultInfo<String> signIn(Long id){
+        User user = SecurityUtil.user();
+        Optional<GymAppointmentRecord> gymAppointmentRecord = gymAppointmentRecordRepo.findById(id);
+        if(gymAppointmentRecord.isEmpty())
+            return new ResultInfo<>(0,"failure");
+
+        GymAppointmentRecord record = gymAppointmentRecord.get();
+
+        if(!record.getUser().getId().equals(user.getId()))
+            return new ResultInfo<>(0,"failure");
+
+        String token = tokenCreator.createToken(user.getPhone(),id.toString());
+
+        return new ResultInfo<>(0,"success",token);
+
+    }
+
+
+
+
+    @GetMapping("/info")
+    public ResultInfo<List<GymAppointment>> getAppointmentInfo(Long id, Long appointment){
+        List<GymAppointment> result = new ArrayList<>();
+        User user = SecurityUtil.user();
+        if(id == null && appointment == null){
+            Set<Gym> gyms = membershipRegisterRepo.findMembershipRegistersByUser(user)
+                    .stream().filter(MembershipRegister::check)
+                    .map(m->m.getMembershipCard().getGym())
+                    .collect(Collectors.toSet());
+            for(Gym gym : gyms)
+                result.addAll(gymAppointmentRepo.findGymAppointmentsByGymArea_Gym(gym));
+        }
+        else if(id != null)
+            result.addAll(gymAppointmentRepo.findGymAppointmentsByGymArea_Gym_Id(id));
+        else {
+            Optional<GymAppointment> gymAppointment = gymAppointmentRepo.findById(appointment);
+            gymAppointment.ifPresent(result::add);
+        }
+
+
+        if(result.isEmpty())
+            return new ResultInfo<>(1,"no such appointment");
+        else
+            return new ResultInfo<>(0,"success",result);
 
     }
 
