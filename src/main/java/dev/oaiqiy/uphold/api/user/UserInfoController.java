@@ -5,10 +5,15 @@ import dev.oaiqiy.uphold.api.ResultInfo;
 import dev.oaiqiy.uphold.data.UserRepo;
 import dev.oaiqiy.uphold.domain.User;
 import dev.oaiqiy.uphold.file.FileService;
+import dev.oaiqiy.uphold.util.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -48,39 +56,42 @@ public class UserInfoController {
     }
 
     @PostMapping("/headshot")
-    public ResultInfo<String> uploadHeadshot(@RequestParam("file") @NotNull MultipartFile headshot){
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-
-        log.info(headshot.getOriginalFilename());
-        log.info(headshot.getContentType());
-
+    public ResultInfo<?> uploadHeadshot(@RequestParam("file") @NotNull MultipartFile headshot){
+        User user = SecurityUtil.user();
 
         if(!headshot.getContentType().contains("image"))
             return new ResultInfo<>(1,"not a image");
 
         log.info(user.getPhone() + " upload headshot: " + headshot.getOriginalFilename()+ " size : " + headshot.getSize());
-        if(fileService.save("headshot",headshot,user.getId().toString()))
-            return new ResultInfo<>(0,"success");
 
-        return new ResultInfo<>(1,"uphold failure");
+        fileService.delete("headshot",user.getId().toString());
+
+        if(fileService.save(headshot, headshot.getOriginalFilename(),"headshot",user.getId().toString()))
+            return new ResultInfo<>(0,"success");
+        else
+            return new ResultInfo<>(1,"uphold failure");
 
     }
 
     @GetMapping("headshot")
-    public void getHeadShot(Long id,HttpServletResponse httpServletResponse){
+    public ResponseEntity<Resource> getHeadShot(Long id){
         if(id == null)
-            id = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getId();
+            id = SecurityUtil.user().getId();
 
+        List<Resource> headshot = fileService.loadAll("headshot",id.toString());
+        Resource resource = headshot.get(0);
+
+        try {
+            Path path = resource.getFile().toPath();
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(path)).body(resource);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return ResponseEntity.notFound().build();
 
     }
 
-//    @PostMapping("/headshot")
-//    public void uploadHeadshot(@RequestParam("file") @NotNull MultipartFile headshot, HttpServletResponse httpServletResponse) throws Exception{
-//
-//       // httpServletResponse.getWriter().write(new String(headshot.getInputStream().readAllBytes()));
-//        httpServletResponse.setContentType(headshot.getContentType());
-//        httpServletResponse.getOutputStream().write(headshot.getInputStream().readAllBytes());
-//    }
 
 }
 

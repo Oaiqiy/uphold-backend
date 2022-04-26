@@ -1,93 +1,42 @@
 package dev.oaiqiy.uphold.file;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.swing.*;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 @Component
 @Slf4j
 public class LocalFileService implements FileService{
     private final String root = "/uphold";
 
-    @Override
-    public boolean save(String pathString, File file) {
-        return save(pathString,file, file.getName());
-    }
 
     @Override
-    public boolean save(String pathString, File file, String name) {
-        Path path = Path.of(root);
-        path.resolve(pathString);
-        File folder = path.toFile();
-        path.resolve(name);
-        File target = path.toFile();
+    public boolean save(MultipartFile file, String filename, String... paths) {
+        Path path = Path.of(root,paths);
 
-        try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            FileOutputStream fileOutputStream = new FileOutputStream(target);
-            fileOutputStream.write(fileInputStream.readAllBytes());
-            fileOutputStream.close();
-            fileInputStream.close();
-
-        } catch (IOException e) {
-            log.warn("save file : " + target.getPath() + "error.");
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean save(String pathString, InputStream fileInputStream, String name) {
-        Path path = Path.of(root);
-        path = path.resolve(pathString).resolve(name);
-
-        File target = path.toFile();
-        if(target.exists())
-            target.delete();
-
-
-        try {
-            target.createNewFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(target);
-            fileOutputStream.write(fileInputStream.readAllBytes());
-            fileOutputStream.close();
-            fileInputStream.close();
-
-        } catch (IOException e) {
-            log.warn("save file : " + target.getPath() + "error.");
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean save(String pathString, MultipartFile file, String name) {
-        Path path = Path.of(root);
-        path = path.resolve(pathString).resolve(name);
         File folder = path.toFile();
         folder.mkdir();
 
-        for(var f : folder.listFiles())
-            f.delete();
-
-        path = path.resolve(file.getOriginalFilename());
+        path = path.resolve(filename);
         File target = path.toFile();
 
-        if(target.exists())
-            target.delete();
+        target.delete();
 
         try {
             file.transferTo(target);
         } catch (IOException e) {
-            e.printStackTrace();
+            return false;
         }
 
         return  true;
@@ -95,12 +44,61 @@ public class LocalFileService implements FileService{
     }
 
     @Override
-    public File load(String path, String name) {
+    public boolean delete(String... path) {
+        File file = Path.of(root,path).toFile();
+        if(!file.exists())
+            return false;
+
+        if(file.isFile()){
+            file.delete();
+        }else {
+            Arrays.stream(Objects.requireNonNull(file.listFiles())).forEach(File::delete);
+        }
+
+        return true;
+    }
+
+
+
+
+    @Override
+    public Resource load(String path, String name) {
+
+
         return null;
     }
 
     @Override
-    public List<File> loadAll(String path) {
-        return null;
+    public List<Resource> loadAll(String... path) {
+        File dir = Path.of(root,path).toFile();
+
+
+        return Arrays.stream(Objects.requireNonNull(dir.listFiles())).map(f -> {
+            try {
+                return new UrlResource(f.toURI());
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).collect(Collectors.toList());
+
+    }
+
+    @Override
+    public String getFileExtension(String filename) {
+        int index = filename.lastIndexOf(".");
+        if(index != -1 && index != 0)
+            return filename.substring(index+1);
+        else
+            return null;
+    }
+
+    @Override
+    public String changeFilename(String filename) {
+        String extension = getFileExtension(filename);
+        if(extension != null)
+            return filename+extension;
+        else
+            return filename;
     }
 }
