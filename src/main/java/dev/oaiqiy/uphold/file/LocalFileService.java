@@ -62,10 +62,14 @@ public class LocalFileService implements FileService{
 
 
     @Override
-    public Resource load(String path, String name) {
+    public Resource load( String name,String... path) {
+        File file = Path.of(root,path).resolve(name).toFile();
 
-
-        return null;
+        try {
+            return new UrlResource(file.toURI());
+        } catch (MalformedURLException e) {
+           return null;
+        }
     }
 
     @Override

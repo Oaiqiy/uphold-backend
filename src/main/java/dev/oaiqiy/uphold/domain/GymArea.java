@@ -23,4 +23,11 @@ public class GymArea {
     @ManyToOne(targetEntity = Gym.class)
     private Gym gym;
 
+    public void change(GymArea area){
+        if(area.getIntroduction() != null)
+            introduction = area.introduction;
+        if(area.getName() != null)
+            name = area.name;
+    }
+
 }

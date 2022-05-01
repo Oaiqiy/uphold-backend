@@ -38,7 +38,7 @@ public class Gym {
 
     private String businessLicence;
 
-    @OneToMany(mappedBy = "gym")
+    @OneToMany(mappedBy = "gym",cascade = {CascadeType.MERGE,CascadeType.PERSIST})
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<GymArea> gymAreas;
 
@@ -46,5 +46,21 @@ public class Gym {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<MembershipCard> membershipCards;
 
+    public enum Status{
+        UNVERIFIED,ENABLED,BANNED,DELETED;
 
+    }
+
+    public void setStatus(Status status) {
+        this.status = status.ordinal();
+    }
+
+    public Gym(String name, String introduction, Location location, String detailLocation, String mainPhone, String sparePhone) {
+        this.name = name;
+        this.introduction = introduction;
+        this.location = location;
+        this.detailLocation = detailLocation;
+        this.mainPhone = mainPhone;
+        this.sparePhone = sparePhone;
+    }
 }

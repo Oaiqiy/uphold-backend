@@ -14,7 +14,7 @@ public interface FileService {
 
     boolean delete(String... path);
 
-    Resource load(String path, String name);
+    Resource load(String name, String... path);
 
     List<Resource> loadAll(String... path);
 
